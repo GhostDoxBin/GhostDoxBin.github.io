@@ -102,6 +102,15 @@
 
             console.log("🔄 Отправляем данные:", data);
 
+            // Безопасная тактильная отдача
+            try {
+                if (Telegram.WebApp.HapticFeedback.supports?.('impactOccurred')) {
+                    Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                }
+            } catch (e) {
+                console.log('Haptic feedback not available');
+            }
+
             // ВАЖНО: Отправляем данные в бота
             Telegram.WebApp.sendData(JSON.stringify(data));
 
