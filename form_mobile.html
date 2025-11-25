@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заказ проекта</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
+            padding: 20px; 
+            background: white;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .form-group { margin-bottom: 20px; }
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-weight: 600;
+            font-size: 16px;
+        }
+        input, select, textarea { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid #e1e5e9; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            box-sizing: border-box;
+            background: #f8f9fa;
+        }
+        button { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            cursor: pointer; 
+            width: 100%;
+            font-weight: 600;
+        }
+        .instructions {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .copy-btn {
+            background: #28a745;
+            margin-top: 10px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Заказ проекта</h1>
+        
+        <form id="orderForm">
+            <div class="form-group">
+                <label>Ваше имя:</label>
+                <input type="text" name="name" required placeholder="Введите ваше имя">
+            </div>
+            
+            <div class="form-group">
+                <label>Ваш Telegram:</label>
+                <input type="text" name="telegram" required placeholder="@username или номер">
+            </div>
+            
+            <div class="form-group">
+                <label>Направление:</label>
+                <select name="direction" required>
+                    <option value="">Выберите направление</option>
+                    <option value="Android">Android</option>
+                    <option value="Web">Web</option>
+                    <option value="Windows">Windows</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Бюджет:</label>
+                <input type="text" name="budget" required placeholder="Пример: 5000 руб">
+            </div>
+            
+            <div class="form-group">
+                <label>Описание проекта:</label>
+                <textarea name="description" required placeholder="Опишите ваш проект..." rows="5"></textarea>
+            </div>
+            
+            <button type="submit">📨 Создать заявку</button>
+        </form>
+
+        <div class="instructions" id="instructions" style="display: none;">
+            <h3>📋 Инструкция по отправке:</h3>
+            <div class="step">1. Нажмите кнопку "📋 Копировать заявку" ниже</div>
+            <div class="step">2. Закройте это окно (нажмите "Назад")</div>
+            <div class="step">3. Откройте чат с ботом @GhostGevelopergg_bot</div>
+            <div class="step">4. Вставьте и отправьте скопированную заявку</div>
+            
+            <button class="copy-btn" onclick="copyToClipboard()">📋 Копировать заявку</button>
+            <div id="copyStatus" style="margin-top: 10px; font-size: 14px;"></div>
+        </div>
+
+        <div id="orderMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+
+        let orderMessage = '';
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            // Формируем сообщение заказа
+            orderMessage = `🎯 НОВЫЙ ЗАКАЗ ИЗ ФОРМЫ!
+
+👤 Имя: ${data.name}
+📱 Telegram: ${data.telegram}
+🎯 Направление: ${data.direction}
+💰 Бюджет: ${data.budget}
+📝 Описание: ${data.description}
+
+🕒 Время: ${new Date().toLocaleString()}`;
+
+            // Показываем инструкции
+            document.getElementById('instructions').style.display = 'block';
+            document.getElementById('orderMessage').textContent = orderMessage;
+            
+            // Прокручиваем к инструкциям
+            document.getElementById('instructions').scrollIntoView({ behavior: 'smooth' });
+            
+            // Автоматически копируем в буфер обмена
+            setTimeout(copyToClipboard, 500);
+        });
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(orderMessage).then(function() {
+                document.getElementById('copyStatus').innerHTML = 
+                    '<span style="color: green;">✅ Заявка скопирована в буфер обмена!</span><br>' +
+                    '<span style="font-size: 12px;">Теперь закройте это окно и отправьте заявку боту</span>';
+                
+                // Показываем уведомление в Telegram WebApp
+                Telegram.WebApp.showPopup({
+                    title: '✅ Успех!',
+                    message: 'Заявка скопирована! Закройте окно и отправьте её боту.',
+                    buttons: [{ type: 'ok' }]
+                });
+                
+            }).catch(function(err) {
+                document.getElementById('copyStatus').innerHTML = 
+                    '<span style="color: red;">❌ Ошибка копирования</span><br>' +
+                    '<span style="font-size: 12px;">Скопируйте текст вручную:</span>';
+                
+                // Показываем текст для ручного копирования
+                document.getElementById('orderMessage').style.display = 'block';
+                document.getElementById('orderMessage').style.background = '#fff3cd';
+                document.getElementById('orderMessage').style.padding = '10px';
+                document.getElementById('orderMessage').style.borderRadius = '5px';
+                document.getElementById('orderMessage').style.border = '1px solid #ffeaa7';
+            });
+        }
+
+        // Добавляем визуальную обратную связь для полей
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.borderColor = '#007bff';
+                this.style.background = '#ffffff';
+            });
+            input.addEventListener('blur', function() {
+                this.style.borderColor = '#e1e5e9';
+                this.style.background = '#f8f9fa';
+            });
+        });
+    </script>
+</body>
+</html>
