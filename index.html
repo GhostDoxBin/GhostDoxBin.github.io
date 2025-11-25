@@ -39,6 +39,13 @@
             cursor: pointer;
             width: 100%;
         }
+        .debug-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -77,17 +84,50 @@
             
             <button type="submit" class="btn">📨 Отправить заявку</button>
         </form>
+
+        <div class="debug-info" id="debugInfo">
+            <strong>Debug информация:</strong><br>
+            WebApp инициализирован: <span id="webAppStatus">❌ Нет</span><br>
+            Пользователь: <span id="userInfo">❌ Не определен</span>
+        </div>
     </div>
 
     <script>
         // Инициализация Telegram Web App
-        Telegram.WebApp.ready();
-        Telegram.WebApp.expand();
+        console.log("🔄 Инициализация Telegram WebApp...");
+        
+        try {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            
+            document.getElementById('webAppStatus').textContent = '✅ Да';
+            document.getElementById('webAppStatus').style.color = 'green';
+            
+            // Показываем информацию о пользователе
+            const tgUser = Telegram.WebApp.initDataUnsafe.user;
+            if (tgUser) {
+                document.getElementById('userInfo').textContent = `✅ ${tgUser.first_name} (@${tgUser.username})`;
+                document.getElementById('userInfo').style.color = 'green';
+                console.log("👤 Пользователь:", tgUser);
+            } else {
+                document.getElementById('userInfo').textContent = '❌ Не авторизован';
+                document.getElementById('userInfo').style.color = 'red';
+            }
+            
+            console.log("✅ WebApp инициализирован");
+            console.log("📊 Init Data:", Telegram.WebApp.initDataUnsafe);
+            
+        } catch (error) {
+            console.error("❌ Ошибка инициализации WebApp:", error);
+            document.getElementById('webAppStatus').textContent = '❌ Ошибка: ' + error.message;
+        }
 
         const form = document.getElementById('orderForm');
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
+            
+            console.log("🔄 Начало отправки формы...");
             
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
@@ -98,27 +138,42 @@
                 data.user_id = tgUser.id;
                 data.username = tgUser.username;
                 data.first_name = tgUser.first_name;
+                console.log("👤 Добавлены данные пользователя:", tgUser);
             }
 
-            console.log("🔄 Отправляем данные:", data);
+            console.log("📦 Данные для отправки:", data);
+            console.log("🔤 JSON строка:", JSON.stringify(data));
 
             // Безопасная тактильная отдача
             try {
                 if (Telegram.WebApp.HapticFeedback.supports?.('impactOccurred')) {
                     Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+                    console.log("📳 Тактильная отдача выполнена");
+                } else {
+                    console.log("📳 Тактильная отдача не поддерживается");
                 }
             } catch (e) {
-                console.log('Haptic feedback not available');
+                console.log('📳 Ошибка тактильной отдачи:', e);
             }
 
             // ВАЖНО: Отправляем данные в бота
-            Telegram.WebApp.sendData(JSON.stringify(data));
+            console.log("🚀 Вызов Telegram.WebApp.sendData()...");
+            try {
+                Telegram.WebApp.sendData(JSON.stringify(data));
+                console.log("✅ Telegram.WebApp.sendData() успешно вызван");
+            } catch (error) {
+                console.error("❌ Ошибка при вызове sendData:", error);
+                alert("❌ Ошибка отправки: " + error.message);
+                return;
+            }
 
             // Показываем сообщение об успехе
             alert("✅ Заявка отправлена! Закрывайте окно.");
+            console.log("✅ Показано сообщение об успехе");
             
             // Закрываем Web App
             setTimeout(() => {
+                console.log("🔒 Закрытие WebApp...");
                 Telegram.WebApp.close();
             }, 1000);
         });
