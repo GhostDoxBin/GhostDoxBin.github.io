@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <h1>Simple Test</h1>
+    <button onclick="sendTest()">Send Test Data</button>
+    
+    <script>
+        Telegram.WebApp.ready();
+        
+        function sendTest() {
+            const testData = {
+                test: "simple",
+                timestamp: Date.now(),
+                user: Telegram.WebApp.initDataUnsafe.user?.id || 'unknown'
+            };
+            
+            console.log("Sending:", testData);
+            Telegram.WebApp.sendData(JSON.stringify(testData));
+            alert("Data sent! Check bot logs.");
+            Telegram.WebApp.close();
+        }
+    </script>
+</body>
+</html>
